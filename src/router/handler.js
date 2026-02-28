@@ -54,6 +54,10 @@ export async function handleRequest(request, env) {
 	try {
 		// 🔧 首次设置路由（不需要认证）
 		if (pathname === '/setup') {
+			if (env.ASSETS) {
+				// React SPA 模式：由前端处理
+				return env.ASSETS.fetch(new Request(new URL('/index.html', request.url), request));
+			}
 			// 检查是否需要首次设置
 			const setupRequired = await checkIfSetupRequired(env);
 			if (!setupRequired) {
@@ -68,9 +72,9 @@ export async function handleRequest(request, env) {
 			return await handleFirstTimeSetup(request, env);
 		}
 
-		// 检查是否需要首次设置
+		// 检查是否需要首次设置（仅旧版 UI 模式需要重定向）
 		const setupRequired = await checkIfSetupRequired(env);
-		if (setupRequired && pathname === '/') {
+		if (setupRequired && pathname === '/' && !env.ASSETS) {
 			// 需要首次设置，重定向到设置页面
 			return Response.redirect(new URL('/setup', request.url).toString(), 302);
 		}
@@ -99,23 +103,36 @@ export async function handleRequest(request, env) {
 			request.authDetails = authDetails;
 		}
 
-		// 静态路由处理
+		// 静态路由处理 - 如果有 ASSETS 绑定，由前端 SPA 处理
 		if (pathname === '/' || pathname === '') {
+			if (env.ASSETS) {
+				// React SPA 模式：返回前端 index.html
+				return env.ASSETS.fetch(new Request(new URL('/index.html', request.url), request));
+			}
 			return await createMainPage();
 		}
 
 		// PWA Manifest
-		if (pathname === '/manifest.json') {
+		if (pathname === '/manifest.json' || pathname === '/manifest.webmanifest') {
+			if (env.ASSETS) {
+				return env.ASSETS.fetch(request);
+			}
 			return createManifest(request);
 		}
 
 		// Service Worker
-		if (pathname === '/sw.js') {
+		if (pathname === '/sw.js' || pathname === '/registerSW.js') {
+			if (env.ASSETS) {
+				return env.ASSETS.fetch(request);
+			}
 			return createServiceWorker(env);
 		}
 
 		// PWA 图标（使用默认SVG图标）
 		if (pathname === '/icon-192.png' || pathname === '/icon-512.png') {
+			if (env.ASSETS) {
+				return env.ASSETS.fetch(request);
+			}
 			const size = pathname.includes('512') ? 512 : 192;
 			return createDefaultIcon(size);
 		}
@@ -186,7 +203,17 @@ export async function handleRequest(request, env) {
 			return await handleGenerateOTP(secret, request);
 		}
 
-		// 404处理
+		// 404处理 - SPA 回退
+		if (env.ASSETS) {
+			// React SPA 模式：静态资源或未知路由
+			// 先尝试作为静态资源获取，如果是 HTML 请求则回退到 index.html
+			const assetResponse = await env.ASSETS.fetch(request);
+			if (assetResponse.status !== 404) {
+				return assetResponse;
+			}
+			// 静态资源不存在，回退到 index.html（SPA 路由）
+			return env.ASSETS.fetch(new Request(new URL('/index.html', request.url), request));
+		}
 		return createErrorResponse('页面未找到', '请求的页面不存在', 404, request);
 	} catch (error) {
 		logger.error(

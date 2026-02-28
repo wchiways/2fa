@@ -3,6 +3,11 @@ main = "src/worker.js"
 compatibility_date = "2024-01-13"
 workers_dev = true
 
+# 前端静态资源（Vite 构建产物）
+[assets]
+directory = "./client/dist"
+binding = "ASSETS"
+
 # KV 命名空间
 # 部署时由 scripts/deploy.js 自动查找或创建，无需手动配置
 # 本地开发如需指定 ID，可取消注释下方三行
