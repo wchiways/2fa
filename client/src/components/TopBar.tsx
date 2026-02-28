@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search, X, Moon, Sun, Monitor, MoreVertical, LogOut, Upload, Download, Archive } from 'lucide-react'
+import { Search, X, Moon, Sun, Monitor, MoreVertical, LogOut, Upload, Download, Archive, Wrench } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useTheme } from '@/hooks/useTheme'
 import { useAuth } from '@/hooks/useAuth'
@@ -11,9 +11,10 @@ interface TopBarProps {
   onImport: () => void
   onExport: () => void
   onBackup: () => void
+  onTools: () => void
 }
 
-export function TopBar({ searchQuery, onSearchChange, secretCount, onImport, onExport, onBackup }: TopBarProps) {
+export function TopBar({ searchQuery, onSearchChange, secretCount, onImport, onExport, onBackup, onTools }: TopBarProps) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const { theme, setTheme } = useTheme()
@@ -30,6 +31,7 @@ export function TopBar({ searchQuery, onSearchChange, secretCount, onImport, onE
     { icon: Upload, label: '批量导入', action: onImport },
     { icon: Download, label: '批量导出', action: onExport },
     { icon: Archive, label: '备份还原', action: onBackup },
+    { icon: Wrench, label: '实用工具', action: onTools },
   ]
 
   return (

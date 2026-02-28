@@ -10,6 +10,9 @@ import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import { ImportDialog } from '@/components/ImportDialog'
 import { ExportDialog } from '@/components/ExportDialog'
 import { BackupDialog } from '@/components/BackupDialog'
+import { QRScanDialog } from '@/components/QRScanDialog'
+import { QRDisplayDialog } from '@/components/QRDisplayDialog'
+import { ToolsDialog } from '@/components/ToolsDialog'
 import { api, type Secret } from '@/services/api'
 
 export function HomePage() {
@@ -22,6 +25,9 @@ export function HomePage() {
   const [importOpen, setImportOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const [backupOpen, setBackupOpen] = useState(false)
+  const [scanOpen, setScanOpen] = useState(false)
+  const [qrTarget, setQrTarget] = useState<Secret | null>(null)
+  const [toolsOpen, setToolsOpen] = useState(false)
 
   const fetchSecrets = useCallback(async () => {
     try {
@@ -95,6 +101,7 @@ export function HomePage() {
         onImport={() => setImportOpen(true)}
         onExport={() => setExportOpen(true)}
         onBackup={() => setBackupOpen(true)}
+        onTools={() => setToolsOpen(true)}
       />
 
       <main className="max-w-2xl mx-auto pb-20">
@@ -114,13 +121,14 @@ export function HomePage() {
                 secret={secret}
                 onEdit={setEditTarget}
                 onDelete={setDeleteTarget}
+                onShowQR={setQrTarget}
               />
             ))}
           </div>
         )}
       </main>
 
-      <FAB onClick={() => setAddDialogOpen(true)} />
+      <FAB onAdd={() => setAddDialogOpen(true)} onScan={() => setScanOpen(true)} />
 
       <AddSecretDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} onAdd={handleAdd} />
       <EditSecretDialog open={!!editTarget} onOpenChange={(o) => { if (!o) setEditTarget(null) }} secret={editTarget} onSave={handleEdit} />
@@ -128,6 +136,9 @@ export function HomePage() {
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} onImported={fetchSecrets} />
       <ExportDialog open={exportOpen} onOpenChange={setExportOpen} secrets={secrets} />
       <BackupDialog open={backupOpen} onOpenChange={setBackupOpen} onRestored={fetchSecrets} />
+      <QRScanDialog open={scanOpen} onOpenChange={setScanOpen} onScanned={fetchSecrets} />
+      <QRDisplayDialog open={!!qrTarget} onOpenChange={(o) => { if (!o) setQrTarget(null) }} secret={qrTarget} />
+      <ToolsDialog open={toolsOpen} onOpenChange={setToolsOpen} />
     </div>
   )
 }

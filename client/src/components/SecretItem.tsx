@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { toast } from 'sonner'
-import { MoreVertical, Pencil, Trash2, Copy } from 'lucide-react'
+import { MoreVertical, Pencil, Trash2, Copy, QrCode } from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
@@ -14,9 +14,10 @@ interface SecretItemProps {
   secret: Secret
   onEdit: (secret: Secret) => void
   onDelete: (secret: Secret) => void
+  onShowQR: (secret: Secret) => void
 }
 
-export function SecretItem({ secret, onEdit, onDelete }: SecretItemProps) {
+export function SecretItem({ secret, onEdit, onDelete, onShowQR }: SecretItemProps) {
   const options = useMemo(() => ({
     digits: secret.digits,
     period: secret.period,
@@ -90,6 +91,10 @@ export function SecretItem({ secret, onEdit, onDelete }: SecretItemProps) {
           <DropdownMenuItem onClick={handleCopy}>
             <Copy className="w-4 h-4" />
             复制验证码
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onShowQR(secret)}>
+            <QrCode className="w-4 h-4" />
+            显示二维码
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onEdit(secret)}>
             <Pencil className="w-4 h-4" />
