@@ -38,16 +38,34 @@ console.log('   2FA Manager 自动化部署');
 console.log('========================================');
 console.log('');
 
-// Step 1: 生成版本号
-console.log('📦 Step 1: 生成 Service Worker 版本号...');
+// Step 1: 构建前端
+console.log('🔨 Step 1: 构建前端...');
+try {
+  const clientDir = join(__dirname, '..', 'client');
+  const fs = await import('fs');
+  if (fs.existsSync(join(clientDir, 'package.json'))) {
+    execSync('npm install', { cwd: clientDir, stdio: 'inherit', encoding: 'utf-8' });
+    execSync('npm run build', { cwd: clientDir, stdio: 'inherit', encoding: 'utf-8' });
+    console.log('   ✅ 前端构建完成');
+  } else {
+    console.log('   ⚠️  未找到 client/package.json，跳过前端构建');
+  }
+} catch (buildError) {
+  console.error('   ❌ 前端构建失败');
+  throw buildError;
+}
+console.log('');
+
+// Step 2: 生成版本号
+console.log('📦 Step 2: 生成 Service Worker 版本号...');
 try {
   const versionCmd = `node ${join(__dirname, 'generate-version.js')} ${versionStrategy} --verbose`;
   const version = execSync(versionCmd, { encoding: 'utf-8' }).trim().split('\n')[0];
   console.log(`   ✅ 版本号: ${version}`);
   console.log('');
 
-  // Step 2: 临时修改 wrangler.toml
-  console.log('📝 Step 2: 注入版本到配置...');
+  // Step 3: 临时修改 wrangler.toml
+  console.log('📝 Step 3: 注入版本到配置...');
   const wranglerPath = join(__dirname, '..', 'wrangler.toml');
 
   // 读取原始配置
@@ -120,8 +138,8 @@ try {
   console.log(`   ✅ 已注入版本: ${version}`);
   console.log('');
 
-  // Step 3: 执行部署
-  console.log('🚀 Step 3: 部署到 Cloudflare Workers...');
+  // Step 4: 执行部署
+  console.log('🚀 Step 4: 部署到 Cloudflare Workers...');
   console.log(`   命令: npx wrangler deploy ${envArg}`.trim());
   console.log('');
 
@@ -148,8 +166,8 @@ try {
     console.error('');
     throw deployError;
   } finally {
-    // Step 4: 恢复原始配置
-    console.log('🔄 Step 4: 恢复配置文件...');
+    // Step 5: 恢复原始配置
+    console.log('🔄 Step 5: 恢复配置文件...');
     fs.writeFileSync(wranglerPath, originalConfig, 'utf-8');
     console.log('   ✅ 配置已恢复');
     console.log('');

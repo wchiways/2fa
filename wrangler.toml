@@ -3,6 +3,10 @@ main = "src/worker.js"
 compatibility_date = "2024-01-13"
 workers_dev = true
 
+# 构建前端（部署前自动执行）
+[build]
+command = "cd client && npm install && npm run build"
+
 # 前端静态资源（Vite 构建产物）
 [assets]
 directory = "./client/dist"
